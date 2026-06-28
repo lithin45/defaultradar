@@ -1,20 +1,22 @@
 # --- Data (large, downloaded; never committed except the tiny CI sample) ---
-data/
-!data/.gitkeep
+# Anchored to the repo root so it does NOT match the src/defaultradar/data
+# Python subpackage.
+/data/
+!/data/.gitkeep
 
 # Keep the small committed CI fixture but ignore everything else under it
 !tests/fixtures/
 !tests/fixtures/**
 
 # --- MLflow / Prefect local state ---
-mlruns/
-mlartifacts/
+/mlruns/
+/mlartifacts/
 .prefect/
 prefect.db
 
 # --- Reports / artifacts produced at runtime ---
-reports/
-!reports/.gitkeep
+/reports/
+!/reports/.gitkeep
 
 # --- Python ---
 __pycache__/
