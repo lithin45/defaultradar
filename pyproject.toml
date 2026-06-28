@@ -100,6 +100,11 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011"]
 
+[tool.ruff.lint.isort]
+# Declare the package as first-party so import grouping is deterministic across
+# environments (local vs CI), independent of install-state detection.
+known-first-party = ["defaultradar"]
+
 # ----------------------------------------------------------------------------
 # Pytest
 # ----------------------------------------------------------------------------

@@ -85,11 +85,11 @@ def quality_gate(
     reports: dict[str, tuple[bool, str]] = {}
 
     auc = test_metrics["roc_auc"]
-    checks["roc_auc>=%.2f" % roc_auc_min] = (auc >= roc_auc_min, f"test ROC-AUC = {auc:.4f}")
+    checks[f"roc_auc>={roc_auc_min:.2f}"] = (auc >= roc_auc_min, f"test ROC-AUC = {auc:.4f}")
 
     if latency_p95_ms is not None:
         ok = latency_p95_ms < CONFIG.latency_p95_ms
-        checks["latency_p95<%dms" % int(CONFIG.latency_p95_ms)] = (
+        checks[f"latency_p95<{int(CONFIG.latency_p95_ms)}ms"] = (
             ok,
             f"p95 = {latency_p95_ms:.1f} ms",
         )
