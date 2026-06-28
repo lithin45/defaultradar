@@ -1,0 +1,16 @@
+# Dependencies for the standalone Streamlit demo (Streamlit Community Cloud).
+# scikit-learn and xgboost are pinned to the versions the bundled model was
+# trained with, so the model loads cleanly. No mlflow / prefect / fastapi needed.
+streamlit>=1.36
+pandas>=2.2,<3
+numpy>=2.0,<2.3
+scikit-learn==1.9.0
+xgboost==2.1.4
+shap>=0.46,<1
+numba>=0.60
+scipy>=1.11,<2
+matplotlib>=3.8
+pyyaml>=6
+pydantic>=2.7,<3
+pydantic-settings>=2.3
+joblib>=1.3

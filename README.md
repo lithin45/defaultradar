@@ -8,6 +8,8 @@
 
 Train → experiment-track → register → serve → monitor for drift → **automatically retrain & promote when drift is detected**. Everything runs locally with `docker compose up` / `make`. The only external dependency is a one-time dataset download. No cloud, no LLM.
 
+**Links:** [Interactive demo dashboard](https://share.streamlit.io) (deploy from `dashboard/`, see [dashboard/README.md](dashboard/README.md)) · [one-page overview (PDF)](docs/DefaultRadar_Linga_Reddy_Gudisha.pdf) · author: **Linga Reddy Gudisha**
+
 ```mermaid
 flowchart LR
     subgraph DATA["Data &amp; Features"]
