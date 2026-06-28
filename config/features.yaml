@@ -1,0 +1,87 @@
+# ============================================================================
+# DefaultRadar — feature contract
+# ----------------------------------------------------------------------------
+# The single source of truth for which columns the model may use. The leakage
+# guard test (tests/test_leakage.py, Phase 2) asserts that:
+#   1) every column entering the feature matrix is in `allowed_features`, and
+#   2) NO column in `banned_columns` ever reaches the feature set.
+#
+# We use the Zenodo "granting model" dataset, whose schema already excludes
+# outcome-derived fields. The banned list is still enumerated explicitly so the
+# guard fails loudly if someone swaps in the full Kaggle Lending Club dataset
+# (which DOES contain int_rate / grade / payment history, etc.).
+# ============================================================================
+
+# --- Roles (not features) ---------------------------------------------------
+target: Default
+time_column: issue_d          # raw "Mon-YYYY" string; never a feature
+# The time-based split compares ISO cutoffs against this PARSED DATE column
+# (derived from issue_d by the data layer), not the raw string.
+split_date_column: issue_date
+id_columns:
+  - id
+
+# --- Allowed application-time features --------------------------------------
+# Grouped by how the feature pipeline (Phase 2) will treat them.
+allowed_features:
+  numeric:                    # passed through / scaled
+    - revenue                 # stated annual income at application
+    - dti_n                   # debt-to-income ratio
+    - loan_amnt               # requested loan amount
+    - fico_n                  # FICO score at application
+    # experience_c is near-constant in this dataset (1 for ~1.35M rows, 0 for 25);
+    # kept for contract fidelity. XGBoost finds no split gain on a near-constant
+    # column, so it is effectively a no-op for the model.
+    - experience_c            # credit-experience indicator
+  ordinal:                    # parsed to an integer (e.g. "10+ years" -> 10)
+    - emp_length
+  categorical:                # one-hot / target-free encoding
+    - purpose
+    - home_ownership_n
+    - addr_state
+    - zip_code
+  text:                       # engineered (e.g. has_description), never raw text
+    - title
+    - desc
+
+# --- Banned columns (must NEVER reach the feature set) ----------------------
+banned_columns:
+  # target / identifiers / time (raw + parsed split date — neither is a feature;
+  # the parsed issue_date is the split key, and using it as a feature would leak
+  # temporal information)
+  - Default
+  - id
+  - issue_d
+  - issue_date
+  # outcome-derived pricing & grading (assigned during/after underwriting)
+  - int_rate
+  - interest_rate
+  - grade
+  - sub_grade
+  - installment
+  # funding (post-decision)
+  - funded_amnt
+  - funded_amnt_inv
+  - pymnt_plan
+  # post-origination performance / payment history (pure leakage)
+  - loan_status
+  - out_prncp
+  - out_prncp_inv
+  - total_pymnt
+  - total_pymnt_inv
+  - total_rec_prncp
+  - total_rec_int
+  - total_rec_late_fee
+  - recoveries
+  - collection_recovery_fee
+  - last_pymnt_d
+  - last_pymnt_amnt
+  - next_pymnt_d
+  - last_credit_pull_d
+  - last_fico_range_high
+  - last_fico_range_low
+  # collections / settlement / hardship (outcome signals)
+  - hardship_flag
+  - debt_settlement_flag
+  - settlement_amount
+  - settlement_percentage

@@ -1,0 +1,49 @@
+# --- Data (large, downloaded; never committed except the tiny CI sample) ---
+data/
+!data/.gitkeep
+
+# Keep the small committed CI fixture but ignore everything else under it
+!tests/fixtures/
+!tests/fixtures/**
+
+# --- MLflow / Prefect local state ---
+mlruns/
+mlartifacts/
+.prefect/
+prefect.db
+
+# --- Reports / artifacts produced at runtime ---
+reports/
+!reports/.gitkeep
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# --- uv ---
+# uv.lock IS committed (reproducibility). Caches are not.
+.uv/
+
+# --- Tooling ---
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# --- Env / secrets ---
+.env
+.env.local
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+*.swp

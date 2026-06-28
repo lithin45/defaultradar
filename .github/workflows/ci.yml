@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# CI runs entirely on the small committed sample (tests/fixtures/lc_sample.csv)
+# so it is fast and needs no 167 MB download and no live services. Integration
+# tests (MLflow/Postgres/Prefect) auto-skip when the stack is not up. The
+# no-leakage test and the model-quality gate (Phases 2-3) run here against the
+# sample — that is why the sample is committed.
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.23"
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: System libs (OpenMP for XGBoost)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgomp1
+
+      - name: Install dependencies (frozen lockfile)
+        run: uv sync --frozen --extra dev
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: No-leakage guard (hard gate)
+        run: uv run pytest tests/test_leakage.py -q
+
+      - name: Model-quality gate (sample-backed)
+        run: uv run pytest tests/test_metrics.py tests/test_training.py -m "not integration and not slow" -q
+
+      - name: Pytest (sample-backed; integration auto-skips)
+        run: uv run pytest -m "not integration and not slow" -q

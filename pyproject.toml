@@ -1,0 +1,116 @@
+[project]
+name = "defaultradar"
+version = "0.1.0"
+description = "DefaultRadar — a local, production-grade MLOps platform for a loan-default model: train, track, register, serve, monitor for drift, and auto-retrain/promote."
+readme = "README.md"
+requires-python = "==3.12.*"
+license = { text = "MIT" }
+authors = [{ name = "DefaultRadar" }]
+
+# Pinned to compatible ranges; uv.lock holds exact, reproducible versions.
+dependencies = [
+    # --- Modeling ---
+    # xgboost pinned to 2.1.x (not 3.x): the 3.x Linux wheels declare a hard
+    # dependency on nvidia-nccl-cu12 (~270MB CUDA lib) on ALL Linux incl.
+    # aarch64 — useless for this CPU-only project and a big image-size hit.
+    # 2.1.x gates that dependency to non-aarch64, keeping our Docker image lean,
+    # with an identical sklearn/SHAP API.
+    "xgboost>=2.1,<2.2",
+    "scikit-learn>=1.5,<2",
+    "shap>=0.46,<1",
+    "scipy>=1.11,<2",
+    # numba/llvmlite come in via shap; pin a recent numba so the resolver does
+    # not backtrack to a py3.12-incompatible llvmlite.
+    "numba>=0.60",
+    # --- Data / feature store ---
+    "pandas>=2.2,<3",
+    # numpy capped at <2.3: numba (shap's dep) does not yet support numpy 2.3+.
+    "numpy>=2.0,<2.3",
+    "pyarrow>=16",
+    "duckdb>=1.1",
+    "pyyaml>=6",
+    # --- Experiment tracking + registry ---
+    # MLflow pinned to the 2.x line: the project requires explicit Model
+    # Registry *stage* promotion (Staging -> Production). MLflow 3.x removed
+    # registry stages in favour of aliases; 2.22.x keeps the stage API.
+    "mlflow>=2.22,<3",
+    "psycopg2-binary>=2.9",
+    # --- Drift / data quality ---
+    "evidently>=0.7,<0.8",
+    # --- Orchestration ---
+    "prefect>=3.0,<4",
+    # --- Serving ---
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3",
+    "httpx>=0.27",
+    "requests>=2.31",
+    # --- Plotting (calibration curve, SHAP, reliability) ---
+    "matplotlib>=3.8",
+    "joblib>=1.3",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+defaultradar = "defaultradar.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/defaultradar"]
+
+[tool.uv]
+# Keep dev tools resolvable in the default sync.
+default-groups = []
+
+# ----------------------------------------------------------------------------
+# Ruff (lint + format)
+# ----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "PD",  # pandas-vet
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B008",   # FastAPI uses function calls (Depends) in defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+# ----------------------------------------------------------------------------
+# Pytest
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+# Exclude the 167MB-download `slow` test by default so the local gate is fast
+# and offline (matches CI). Run it explicitly with `pytest -m slow`. Integration
+# tests still run by default and auto-skip when the stack is down.
+addopts = "-ra --strict-markers -m 'not slow'"
+markers = [
+    "integration: requires live services (MLflow/Postgres/Prefect) via docker compose",
+    "slow: requires the full Zenodo dataset download",
+]
