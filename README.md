@@ -1,5 +1,9 @@
 # DefaultRadar
 
+[![CI](https://github.com/lithin45/defaultradar/actions/workflows/ci.yml/badge.svg)](https://github.com/lithin45/defaultradar/actions/workflows/ci.yml)
+&nbsp;![Python](https://img.shields.io/badge/python-3.12-blue)
+&nbsp;![License](https://img.shields.io/badge/license-MIT-green)
+
 **A local, production-grade MLOps platform for loan-default scoring — the full lifecycle loop, not a notebook.**
 
 Train → experiment-track → register → serve → monitor for drift → **automatically retrain & promote when drift is detected**. Everything runs locally with `docker compose up` / `make`. The only external dependency is a one-time dataset download. No cloud, no LLM.
